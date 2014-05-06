@@ -258,6 +258,13 @@ public class FTDI {
     if (!usbPipeRead.isOpen()) {
       usbPipeRead.open();
     }
+    /**
+     * Developer note: The syncSubmit (and presumably asyncSubmit) do not clear
+     * the input byte array - they merely write bytes into the provided array.
+     * Reusing a previously populated byte array creates JUNK data as new bytes
+     * are written over the old bytes but if the new packet is shorter then old
+     * bytes will remain.
+     */
     byte[] usbPacket = new byte[usbPipeRead.getUsbEndpoint().getUsbEndpointDescriptor().wMaxPacketSize()];
     int bytesRead = usbPipeRead.syncSubmit(usbPacket);
     /**
@@ -267,5 +274,10 @@ public class FTDI {
     return bytesRead == MODEM_STATUS_HEADER_LENGTH
       ? new byte[0]
       : Arrays.copyOfRange(usbPacket, MODEM_STATUS_HEADER_LENGTH, bytesRead);
+  }
+
+  @Override
+  public String toString() {
+    return "FTDI " + usbDevice;
   }
 }
