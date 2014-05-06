@@ -1,48 +1,49 @@
 /*
- * Copyright (c) 2014, Jesse Caulfield <jesse@caulfield.org>
- * All rights reserved.
+ * Copyright (C) 2014 Jesse Caulfield <jesse@caulfield.org>.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
  */
-package com.ftdichip.usb.enumerated;
+package com.ftdichip.usb;
 
+import com.ftdichip.usb.enumerated.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.usb.*;
-import javax.usb.exception.UsbDisconnectedException;
+import javax.usb.IUsbDevice;
+import javax.usb.IUsbHub;
+import javax.usb.UsbHostManager;
 import javax.usb.exception.UsbException;
-import javax.usb.exception.UsbNotActiveException;
 import javax.usb.ri.enumerated.EEndpointDirection;
 import javax.usb.ri.request.BMRequestType;
 
 /**
- * Library to talk to FTDI UART chips via the USB bus.
+ * Library to detect and configure FTDI UART chips via the USB bus.
  * <p>
- * This library is tuned to communicate with FT232R, FT2232 and FT232B chips
- * from Future Technology Devices International Ltd.
+ * This library is tuned to communicate and configure FT232R, FT2232 and FT232B
+ * chips from Future Technology Devices International Ltd. Routines and BYTE
+ * value constant in this class are rewritten in Java from the native "libftdi"
+ * library originally written in C.
  * <p>
- * Routines and BYTE value constant in this class are rewritten in Java from the
- * native "libftdi" library originally written in C.
+ * This utility class includes static methods useful for identifying and
+ * controlling devices. To read and write data using a specific FTDI USB device
+ * use {@link FTDI}.
+ * <p>
+ * This approach allows a user program to identify all attached FTDI UART chips
+ * on the USB via {@link #findFTDIDevices()}, then to communicate with each
+ * using multiple instances of the FTDI class.
  * <p>
  * @see <a
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.c">ftdi.c</a>
@@ -50,23 +51,26 @@ import javax.usb.ri.request.BMRequestType;
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.h">ftdi.c</a>
  * @author Jesse Caulfield <jesse@caulfield.org> April, 25, 2014
  */
-public class FTDI {
+public class FTDIUtil {
 
   /**
-   * 0403. Future Technology Devices International Ltd. USB vendor ID.
+   * 0403.
+   * <p>
+   * Future Technology Devices International Ltd. USB vendor ID.
    */
   public static final short VENDOR_ID = 0x0403;
   /**
-   * 6001. FT232R, FT2232 and FT232B USB to serial converter chip set product
-   * ID.
+   * 6001, 6010, 6011.
+   * <p>
+   * The FT232R, FT2232 and FT232B USB to serial converter chip sets.
    */
-  public static final short PRODUCT_ID = 0x6001;
+  public static final Short[] PRODUCT_ID = new Short[]{0x6001, 0x6010, 0x6011};
 
   //<editor-fold defaultstate="collapsed" desc="Static FTDI Byte Constant Declarations">
   /**
    * Length of the modem status header, transmitted with every read.
    */
-  private static final int MODEM_STATUS_HEADER_LENGTH = 2;
+  public static final int MODEM_STATUS_HEADER_LENGTH = 2;
 
   // control request message types
   /**
@@ -122,28 +126,19 @@ public class FTDI {
    */
   public static final byte SIO_SET_DATA_REQUEST = 0x04;
   public static final byte SIO_POLL_MODEM_STATUS_REQUEST = 0x05;
-  public static final byte SIO_SET_EVENT_CHAR_REQUEST = 0x06;
-  public static final byte SIO_SET_ERROR_CHAR_REQUEST = 0x07;
+//  public static final byte SIO_SET_EVENT_CHAR_REQUEST = 0x06;
+//  public static final byte SIO_SET_ERROR_CHAR_REQUEST = 0x07;
 
-  public static final byte SIO_SET_LATENCY_TIMER_REQUEST = 0x09;
-  public static final byte SIO_GET_LATENCY_TIMER_REQUEST = 0x0A;
-
-  public static final byte SIO_SET_BITMODE_REQUEST = 0x0B;
-  public static final byte SIO_READ_PINS_REQUEST = 0x0C;
-  public static final byte SIO_READ_EEPROM_REQUEST = (byte) 0x90;
-  public static final byte SIO_WRITE_EEPROM_REQUEST = (byte) 0x91;
-  public static final byte SIO_ERASE_EEPROM_REQUEST = (byte) 0x92;
-
-  public static final byte SIO_RESET_SIO = 0;
-  public static final byte SIO_RESET_PURGE_RX = 1;
-  public static final byte SIO_RESET_PURGE_TX = 2;
-
-  // flow control
-  public static final byte SIO_DISABLE_FLOW_CTRL = 0x0;
-  public static final byte SIO_RTS_CTS_HS = (byte) (0x1 << 8);
-  public static final byte SIO_DTR_DSR_HS = (byte) (0x2 << 8);
-  public static final byte SIO_XON_XOFF_HS = (byte) (0x4 << 8);
-
+//  public static final byte SIO_SET_LATENCY_TIMER_REQUEST = 0x09;
+//  public static final byte SIO_GET_LATENCY_TIMER_REQUEST = 0x0A;
+//  public static final byte SIO_SET_BITMODE_REQUEST = 0x0B;
+//  public static final byte SIO_READ_PINS_REQUEST = 0x0C;
+//  public static final byte SIO_READ_EEPROM_REQUEST = (byte) 0x90;
+//  public static final byte SIO_WRITE_EEPROM_REQUEST = (byte) 0x91;
+//  public static final byte SIO_ERASE_EEPROM_REQUEST = (byte) 0x92;
+//  public static final byte SIO_RESET_SIO = 0;
+//  public static final byte SIO_RESET_PURGE_RX = 1;
+//  public static final byte SIO_RESET_PURGE_TX = 2;
   // DTR and RTS lines
   public static final byte SIO_SET_DTR_MASK = 0x1;
   public static final byte SIO_SET_DTR_HIGH = (byte) (1 | (SIO_SET_DTR_MASK << 8));
@@ -153,140 +148,18 @@ public class FTDI {
   public static final byte SIO_SET_RTS_LOW = (byte) ((SIO_SET_RTS_MASK << 8));
 //</editor-fold>
 
-  /**
-   * FTDI static methods are callable as a a utility class. Hide the no-argument
-   * constructor to prevent bad code.
-   */
-  private FTDI() {
-  }
-
-  /**
-   * The USB interface (within the IUsbDevice) through which this device
-   * communicates. This is extracted from the IUsbDevice and stored here (at the
-   * class level) for convenience.
-   * <p>
-   * IUsbInterface a synchronous wrapper through which this application sends
-   * and receives messages with the device.
-   */
-  private IUsbInterface usbInterface;
-  /**
-   * The USB Pipe used to READ data from the connected device.
-   */
-  private IUsbPipe usbPipeRead;
-  /**
-   * The USB Pipe used to WRITE data from the connected device.
-   */
-  private IUsbPipe usbPipeWrite;
-
-  /**
-   * FTDI non-static methods (read, write) require that the user identify and
-   * select an FTDI device.
-   * <p>
-   * This approach allows a user program to identify all attached FTDI UART
-   * chips on the USB via {@link #findFTDIDevices()}, then to communicate with
-   * each using multiple instances of the FTDI class.
-   * <p>
-   * @param usbDevice the specific UsbDevice instance returned from
-   *                  {@link #findFTDIDevices()}
-   * @throws UsbException if the USB device is not readable/writable by the
-   *                      current user (permission error)
-   */
-  public FTDI(IUsbDevice usbDevice) throws UsbException {
-    IUsbConfiguration configuration = usbDevice.getActiveUsbConfiguration();
-    usbInterface = configuration.getUsbInterfaces().get(0);
-    usbInterface.claim(new IUsbInterfacePolicy() {
-
-      @Override
-      public boolean forceClaim(IUsbInterface usbInterface) {
-        return true;
-      }
-    });
-    for (IUsbEndpoint usbEndpoint : usbInterface.getUsbEndpoints()) {
-      if (EEndpointDirection.HOST_TO_DEVICE.equals(usbEndpoint.getDirection())) {
-        usbPipeWrite = usbEndpoint.getUsbPipe();
-      } else {
-        usbPipeRead = usbEndpoint.getUsbPipe();
-      }
-    }
-    /**
-     * Add a shutdown hook to disconnect and close the USB port when we're
-     * shutting down.
-     */
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-
-      @Override
-      public void run() {
-        try {
-          usbInterface.release();
-          Thread.sleep(250); // wait a quarter second for stuff to settle
-        } catch (UsbException | UsbNotActiveException | UsbDisconnectedException | InterruptedException ex) {
-        }
-      }
-    });
-  }
-
-  /**
-   * Asynchronously write a byte[] array to the FTDI port.
-   * <p>
-   * The default timeout value set in the properties file is used.
-   * <p>
-   * @param data A byte array containing the data to write to the device.
-   * @exception UsbException If an error occurs.
-   */
-  public void writeAsync(byte[] data) throws UsbException {
-    if (!usbPipeWrite.isOpen()) {
-      usbPipeWrite.open();
-    }
-    IUsbIrp usbIrp = usbPipeWrite.createUsbIrp();
-    usbIrp.setData(data);
-    usbPipeWrite.asyncSubmit(usbIrp);
-  }
-
-  /**
-   * Synchronously write a byte[] array to the FTDI port.
-   * <p>
-   * @param data A byte array containing the data to write to the device.
-   * @return The number of bytes actually transferred to the device.
-   * @exception UsbException If an error occurs.
-   */
-  public int write(byte[] data) throws UsbException {
-    if (!usbPipeWrite.isOpen()) {
-      usbPipeWrite.open();
-    }
-    return usbPipeWrite.syncSubmit(data);
-  }
-
-  /**
-   * Synchronously read a byte[] array from the FTDI port.
-   * <p>
-   * This method automatically strips the FTDI modem status header bytes and
-   * only returns actual device data.
-   * <p>
-   * If there is no data on the device an empty array (length = 0) is returned.
-   * <p>
-   * @return a non-null, variable length byte array containing the actual data
-   *         read from the device. The length of the byte array ranges between 0
-   *         (empty)
-   * @throws UsbException if the USB Port fails to read
-   */
-  public byte[] read() throws UsbException {
-    if (!usbPipeRead.isOpen()) {
-      usbPipeRead.open();
-    }
-    byte[] usbPacket = new byte[usbPipeRead.getUsbEndpoint().getUsbEndpointDescriptor().wMaxPacketSize()];
-    int bytesRead = usbPipeRead.syncSubmit(usbPacket);
-    return bytesRead == MODEM_STATUS_HEADER_LENGTH ? new byte[0] : Arrays.copyOf(usbPacket, bytesRead);
-  }
-
   //<editor-fold defaultstate="collapsed" desc="Static Utility Methods">
   /**
-   * Search the USB device tree and return all detected FTDI device.
+   * Search the USB device tree and return all detected FTDI device. This scans
+   * the USB for FTDI vendor ID (0403) and any recognized UART product ID (6001,
+   * 6010, 6011).
    * <p>
-   * @return a non-null list of FTDI device; empty if none are found
+   * @return a non-null (but possibly empty) list of FTDI devices attached to
+   *         the USB
    * @throws UsbException if the USB port cannot be read
    */
   public static List<IUsbDevice> findFTDIDevices() throws UsbException {
-    return getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, PRODUCT_ID);
+    return getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
   }
 
   /**
@@ -299,7 +172,7 @@ public class FTDI {
    * @param productId (Optional) The product id to match.
    * @param A         List of any matching IUsbDevice(s).
    */
-  private static List<IUsbDevice> getUsbDeviceList(IUsbDevice usbDevice, short vendorId, short productId) {
+  private static List<IUsbDevice> getUsbDeviceList(IUsbDevice usbDevice, short vendorId, List<Short> productId) {
     List<IUsbDevice> iUsbDeviceList = new ArrayList<>();
     /*
      * A device's descriptor is always available. All descriptor field names and
@@ -321,7 +194,7 @@ public class FTDI {
      * See javax.usb.util.UsbUtil.unsignedInt() for some more information.
      */
     if (vendorId == usbDevice.getUsbDeviceDescriptor().idVendor()
-      && (productId == 0 || productId == usbDevice.getUsbDeviceDescriptor().idProduct())) {
+      && productId.contains(usbDevice.getUsbDeviceDescriptor().idProduct())) {
       iUsbDeviceList.add(usbDevice);
     }
     /*
@@ -336,11 +209,51 @@ public class FTDI {
     return iUsbDeviceList;
   }
 
-  public static void setBitMode(IUsbDevice usbDevice, EBitMode bitMode) {
-
+  /**
+   * Set the serial port configuration. This is a convenience method to send
+   * multiple USB control messages to the FTDI device.
+   * <p>
+   * @param usbDevice         the USB Device to send the control message to
+   * @param requestedBaudRate the requested baud rate (bits per second). e.g.
+   *                          115200.
+   * @param bits              Number of bits
+   * @param stopbits          Number of stop bits
+   * @param parity            LineParity mode
+   * @param flowControl       flow control to use.
+   * @throws UsbException if the FTDI UART cannot be configured or control
+   *                      messages cannot be sent (e.g. insufficient
+   *                      permissions)
+   */
+  public static void setSerialPort(IUsbDevice usbDevice,
+                                   int requestedBaudRate,
+                                   ELineDatabits bits,
+                                   ELineStopbits stopbits,
+                                   ELineParity parity,
+                                   EFlowControl flowControl) throws UsbException {
+    setBaudRate(usbDevice, requestedBaudRate);
+    setLineProperty(usbDevice, bits, stopbits, parity);
+    setFlowControl(usbDevice, flowControl);
   }
 
   /**
+   * Rest the FTDI UART configuration. This resets the serial port to its
+   * default state.
+   * <p>
+   * @param usbDevice the USB Device to send the control message to
+   * @throws UsbException if the control message cannot be set
+   */
+  public void reset(IUsbDevice usbDevice) throws UsbException {
+    usbDevice.syncSubmit(usbDevice.createUsbControlIrp(FTDI_USB_CONFIGURATION_WRITE,
+                                                       SIO_RESET_REQUEST,
+                                                       (short) 0,
+                                                       (short) 0));
+  }
+
+  /**
+   * Set the link data rate (bits per second).
+   * <p>
+   * The maximum Baud rate achieveable with FTDI's current devices is 3M Baud.
+   * <p>
    * The FT232R, FT2232 and FT232B chip sets support all standard baud rates and
    * non-standard baud rates from 300 Baud up to 3 Megabaud. The achievable baud
    * rates range is 183.1 baud to 3,000,000 baud.
@@ -431,17 +344,21 @@ public class FTDI {
   }
 
   /**
-   * Set flow control for ftdi chip
+   * Set flow control for ftdi chip. The FT245R, FT2232C (in FIFO mode) and
+   * FT245BM chips use their own handshaking as an integral part of its design,
+   * by proper use of the TXE# line. The FT232R, FT2232C (in UART mode) and
+   * FT232BM chips can use RTS/CTS, DTR/DSR hardware or XOn/XOff software
+   * handshaking. It is highly recommended that some form of handshaking be
+   * used.
    * <p>
    * @param usbDevice   the FTDI USB device
-   * @param flowcontrol flow control to use. should be SIO_DISABLE_FLOW_CTRL,
-   *                    SIO_RTS_CTS_HS, SIO_DTR_DSR_HS or SIO_XON_XOFF_HS
+   * @param flowcontrol flow control to use.
    * @throws UsbException if the device command message fails to set
    */
-  public static void setFlowControl(IUsbDevice usbDevice, byte flowcontrol) throws UsbException {
+  public static void setFlowControl(IUsbDevice usbDevice, EFlowControl flowcontrol) throws UsbException {
     usbDevice.syncSubmit(usbDevice.createUsbControlIrp(FTDI_USB_CONFIGURATION_WRITE,
                                                        SIO_SET_FLOW_CTRL_REQUEST,
-                                                       flowcontrol,
+                                                       flowcontrol.getBytecode(),
                                                        (short) 0));
   }
 
@@ -569,6 +486,17 @@ public class FTDI {
    */
   private static short calculateBaudRate(int requestedBaudRate) {
     /**
+     * Developer note: The maximum Baud rate achieveable with FTDI's current
+     * devices is 3M Baud. the Baud rate divisor must be calculated using the
+     * following formula:
+     * <p>
+     * <code>Integer Divisor + Sub-Integer Divisor = 3000000/Baud Rate</code>
+     * <p>
+     * where the Integer Divisor is any integer between 2 and 16384 and the
+     * Sub-Integer Divisor can be any one of 0, 0.125, 0.25, 0.375, 0.5, 0.625,
+     * 0.75 or 0.875. Note that the FT8U232AM device will only support
+     * Sub-Integer Divisors of 0, 0.125, 0.25 and 0.5.
+     * <p>
      * This 3MHz reference clock is then divided down to provide the required
      * Baud rate for the device's on chip UART. The value of the Baud rate
      * divisor is an integer plus a sub-integer pre-scaler.

@@ -19,7 +19,8 @@
 package com.ftdichip.usb.enumerated;
 
 /**
- * Enumerated list of MPSSE bitbang modes.
+ * Enumerated list of Multi-Protocol Synchronous Serial Engine (MPSSE) bitbang
+ * modes.
  * <p>
  * BIT BANG MODE: FT232R and FT245R chips can be set up in a special mode where
  * the normal function of the chips are replaced. This mode changes the 8 data
@@ -63,43 +64,44 @@ package com.ftdichip.usb.enumerated;
 public enum EBitMode {
 
   /**
-   * switch off bitbang mode, back to regular serial/FIFO
+   * Switch off bitbang mode, back to regular serial/FIFO.
    */
-  BITMODE_RESET((byte) 0x00),
+  RESET((byte) 0x00),
   /**
-   * classical asynchronous bitbang mode, introduced with B-type chips
+   * Classical asynchronous bitbang mode, introduced with B-type chips.
    */
-  BITMODE_BITBANG((byte) 0x01),
+  BITBANG((byte) 0x01),
   /**
-   * MPSSE mode, available on 2232x chips
+   * Multi-Protocol Synchronous Serial Engine, available on 2232x chips.
    */
-  BITMODE_MPSSE((byte) 0x02),
+  MPSSE((byte) 0x02),
   /**
-   * synchronous bitbang mode, available on 2232x and R-type chips
+   * Synchronous Bit-Bang Mode, available on 2232x and R-type chips.
    */
-  BITMODE_SYNCBB((byte) 0x04),
+  SYNCBB((byte) 0x04),
   /**
-   * MCU Host Bus Emulation mode, available on 2232x chips
+   * MCU Host Bus Emulation Mode, available on 2232x chips. CPU-style fifo mode
+   * gets set via EEPROM.
    */
-  BITMODE_MCU((byte) 0x08),
+  MCU((byte) 0x08),
   // CPU-style fifo mode gets set via EEPROM
 
   /**
-   * Fast Opto-Isolated Serial Interface Mode, available on 2232x chips
+   * Fast Opto-Isolated Serial Interface Mode, available on 2232x chips.
    */
-  BITMODE_OPTO((byte) 0x10),
+  OPTO((byte) 0x10),
   /**
-   * Bitbang on CBUS pins of R-type chips, configure in EEPROM before
+   * Bit-Bang on CBus pins of R-type chips, configure in EEPROM before use.
    */
-  BITMODE_CBUS((byte) 0x20),
+  CBUS((byte) 0x20),
   /**
-   * Single Channel Synchronous FIFO mode, available on 2232H chips
+   * Single Channel Synchronous FIFO Mode, available on 2232H chips.
    */
-  BITMODE_SYNCFF((byte) 0x40),
+  SYNCFF((byte) 0x40),
   /**
    * FT1284 mode, available on 232H chips
    */
-  BITMODE_FT1284((byte) 0x80);
+  FT1284((byte) 0x80);
 
   private final byte mask;
 

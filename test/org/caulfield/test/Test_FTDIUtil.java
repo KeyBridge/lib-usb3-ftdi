@@ -16,43 +16,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package com.ftdichip.usb.enumerated;
+package org.caulfield.test;
+
+import com.ftdichip.usb.FTDIUtil;
+import java.util.List;
+import javax.usb.IUsbDevice;
+import javax.usb.exception.UsbException;
 
 /**
- * LineParity mode for ftdi_set_line_property()
+ *
+ * @author Jesse Caulfield <jesse@caulfield.org>
  */
-public enum ELineParity {
+public class Test_FTDIUtil {
 
-  /**
-   * No line parity.
-   */
-  NONE(0),
-  /**
-   * The parity bit is set to one if the number of ones in a given set of bits
-   * is even (making the total number of ones, including the parity bit, odd).
-   */
-  ODD(1),
-  /**
-   * The parity bit is set to one if the number of ones in a given set of bits
-   * is odd (making the total number of ones, including the parity bit, even).
-   */
-  EVEN(2),
-  /**
-   * The parity bit is always 1.
-   */
-  MARK(3),
-  /**
-   * The parity bit is always 0.
-   */
-  SPACE(4);
-  private final int parity;
-
-  private ELineParity(int parity) {
-    this.parity = parity;
+  public static void main(String[] args) throws UsbException {
+    List<IUsbDevice> devices = FTDIUtil.findFTDIDevices();
+    for (IUsbDevice iUsbDevice : devices) {
+      System.out.println("debug " + iUsbDevice);
+    }
   }
-
-  public int getParity() {
-    return parity;
-  }
-
 }
