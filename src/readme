@@ -1,4 +1,6 @@
-libusb-ftdi - a JAVA USB driver for FTDI serial UART chips.
++------------------------------------------------------------------------------+
+|         libusb-ftdi - a JAVA USB driver for FTDI serial UART chips.          |
++------------------------------------------------------------------------------+
 
 This software is based upon libFTDI: a FTDI USB driver with bitbang mode
   libFTDI is an open source library to talk to FTDI chips: FT232BM, FT245BM, 
@@ -9,6 +11,9 @@ This software is based upon libFTDI: a FTDI USB driver with bitbang mode
 References
   http://www.intra2net.com/en/developer/libftdi/index.php
 
+Limits
+  The JAVA implementation does not support EEPROM programming.
+
 License
   Original source code is licensed as follows:
   The library itself is licensed under LGPL 2.1 (not any later),
@@ -17,11 +22,9 @@ License
   Accordingly, JAVA source code is licensed under LGPL 2.1.
 
 Requirements and dependencies
-
   This library depends upon lib-javax-usb: (JSR-80 + USB4Java)
 
 Supports:
-
 # FTDI Devices: FT232BM/L/Q, FT245BM/L/Q, FT232RL/Q, FT245RL/Q, VNC1L with VDPS Firmware
   idVendor        0403       
   idProduct       6001       
