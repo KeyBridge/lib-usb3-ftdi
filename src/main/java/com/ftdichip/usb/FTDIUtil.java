@@ -19,15 +19,14 @@
 package com.ftdichip.usb;
 
 import com.ftdichip.usb.enumerated.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.usb.IUsbDevice;
-import javax.usb.IUsbHub;
 import javax.usb.UsbHostManager;
 import javax.usb.exception.UsbException;
 import javax.usb.ri.enumerated.EEndpointDirection;
 import javax.usb.ri.request.BMRequestType;
+import org.usb4java.javax.UsbDevice;
 
 /**
  * Library to detect and configure FTDI UART chips via the USB bus.
@@ -72,7 +71,6 @@ public class FTDIUtil {
    */
   public static final int MODEM_STATUS_HEADER_LENGTH = 2;
 
-  // control request message types
   /**
    * FTDI vendor-specific USB device control message to WRITE a configuration
    * parameter.
@@ -80,20 +78,9 @@ public class FTDIUtil {
    * This is the <code>bmRequestType</code> bitmapped field that identifies the
    * characteristics of a specific request.
    */
-  // D6...5: Type
-  public static final byte REQUESTTYPE_TYPE_MASK = (byte) 0x60;
-  public static final byte REQUESTTYPE_TYPE_VENDOR = (byte) 0x40;
-  public static final byte REQUESTTYPE_RECIPIENT_DEVICE = (byte) 0x00;
-  public static final byte REQUESTTYPE_DIRECTION_IN = (byte) 0x80;
-  public static final byte REQUESTTYPE_DIRECTION_OUT = (byte) 0x00;
-
-  public static final byte FTDI_DEVICE_OUT_REQTYPE = (REQUESTTYPE_TYPE_VENDOR | REQUESTTYPE_RECIPIENT_DEVICE | REQUESTTYPE_DIRECTION_OUT);
-  public static final byte FTDI_DEVICE_IN_REQTYPE = (REQUESTTYPE_TYPE_VENDOR | REQUESTTYPE_RECIPIENT_DEVICE | REQUESTTYPE_DIRECTION_IN);
-
   public static final byte FTDI_USB_CONFIGURATION_WRITE = new BMRequestType(EEndpointDirection.HOST_TO_DEVICE,
                                                                             BMRequestType.EType.VENDOR,
                                                                             BMRequestType.ERecipient.DEVICE).getByteCode();
-
   /**
    * FTDI vendor-specific USB device control message to READ a configuration
    * parameter.
@@ -159,54 +146,8 @@ public class FTDIUtil {
    * @throws UsbException if the USB port cannot be read
    */
   public static List<IUsbDevice> findFTDIDevices() throws UsbException {
-    return getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
-  }
-
-  /**
-   * Get a List of all devices that match the specified vendor and product id.
-   * <p>
-   * Set the productID to capture all USB devices with the given vendor id.
-   * <p>
-   * @param usbDevice The IUsbDevice to check.
-   * @param vendorId  The vendor id to match.
-   * @param productId (Optional) The product id to match.
-   * @param A         List of any matching IUsbDevice(s).
-   */
-  private static List<IUsbDevice> getUsbDeviceList(IUsbDevice usbDevice, short vendorId, List<Short> productId) {
-    List<IUsbDevice> iUsbDeviceList = new ArrayList<>();
-    /*
-     * A device's descriptor is always available. All descriptor field names and
-     * types match exactly what is in the USB specification. Note that Java does
-     * not have unsigned numbers, so if you are comparing 'magic' numbers to the
-     * fields, you need to handle it correctly. For example if you were checking
-     * for Intel (vendor id 0x8086) devices, if (0x8086 ==
-     * descriptor.idVendor()) will NOT work. The 'magic' number 0x8086 is a
-     * positive integer, while the _short_ vendor id 0x8086 is a negative
-     * number! So you need to do either if ((short)0x8086 ==
-     * descriptor.idVendor()) or if (0x8086 ==
-     * UsbUtil.unsignedInt(descriptor.idVendor())) or short intelVendorId =
-     * (short)0x8086; if (intelVendorId == descriptor.idVendor()) Note the last
-     * one, if you don't cast 0x8086 into a short, the compiler will fail
-     * because there is a loss of precision; you can't represent positive 0x8086
-     * as a short; the max value of a signed short is 0x7fff (see
-     * Short.MAX_VALUE).
-     *
-     * See javax.usb.util.UsbUtil.unsignedInt() for some more information.
-     */
-    if (vendorId == usbDevice.getUsbDeviceDescriptor().idVendor()
-      && productId.contains(usbDevice.getUsbDeviceDescriptor().idProduct())) {
-      iUsbDeviceList.add(usbDevice);
-    }
-    /*
-     * If the device is a HUB then recurse and scan the hub connected devices.
-     * This is just normal recursion: Nothing special.
-     */
-    if (usbDevice.isUsbHub()) {
-      for (IUsbDevice usbDeviceTemp : ((IUsbHub) usbDevice).getAttachedUsbDevices()) {
-        iUsbDeviceList.addAll(getUsbDeviceList(usbDeviceTemp, vendorId, productId));
-      }
-    }
-    return iUsbDeviceList;
+//    return getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
+    return UsbDevice.getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
   }
 
   /**
