@@ -18,10 +18,10 @@
  */
 package com.ftdichip.usb;
 
-import com.ftdichip.usb.FTDIUtil;
 import java.util.List;
 import javax.usb.IUsbDevice;
 import javax.usb.exception.UsbException;
+import org.junit.Test;
 
 /**
  *
@@ -29,7 +29,8 @@ import javax.usb.exception.UsbException;
  */
 public class Test_FTDIUtil {
 
-  public static void main(String[] args) throws UsbException {
+  @Test
+  public void testFTDI() throws UsbException {
     List<IUsbDevice> devices = FTDIUtil.findFTDIDevices();
     for (IUsbDevice iUsbDevice : devices) {
       System.out.println("debug " + iUsbDevice);
