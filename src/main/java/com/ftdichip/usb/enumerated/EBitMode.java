@@ -59,7 +59,7 @@ package com.ftdichip.usb.enumerated;
  * be old.
  * <p>
  * @see Application Note AN232BM-01
- * @author Jesse Caulfield <jesse@caulfield.org>
+ * @author Jesse Caulfield
  */
 public enum EBitMode {
 

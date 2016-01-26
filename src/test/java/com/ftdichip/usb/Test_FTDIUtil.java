@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package org.caulfield.test;
+package com.ftdichip.usb;
 
 import com.ftdichip.usb.FTDIUtil;
 import java.util.List;
@@ -25,7 +25,7 @@ import javax.usb.exception.UsbException;
 
 /**
  *
- * @author Jesse Caulfield <jesse@caulfield.org>
+ * @author Jesse Caulfield
  */
 public class Test_FTDIUtil {
 

@@ -52,7 +52,7 @@ import javax.usb.ri.enumerated.EEndpointDirection;
  * ASYNC read then you should directly access the {@linkplain UsbPipe}, which
  * already has a listener interface.
  * <p>
- * @author Jesse Caulfield <jesse@caulfield.org> May 06, 2014
+ * @author Jesse Caulfield May 06, 2014
  */
 public class FTDI {
 

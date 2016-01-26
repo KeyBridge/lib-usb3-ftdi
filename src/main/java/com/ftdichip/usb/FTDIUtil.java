@@ -48,7 +48,7 @@ import org.usb4java.javax.UsbDevice;
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.c">ftdi.c</a>
  * @see <a
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.h">ftdi.c</a>
- * @author Jesse Caulfield <jesse@caulfield.org> April, 25, 2014
+ * @author Jesse Caulfield April, 25, 2014
  */
 public class FTDIUtil {
 
