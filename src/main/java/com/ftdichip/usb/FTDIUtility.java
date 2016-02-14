@@ -23,47 +23,50 @@ import java.util.Arrays;
 import java.util.List;
 import javax.usb.IUsbDevice;
 import javax.usb.UsbHostManager;
+import javax.usb.enumerated.EEndpointDirection;
 import javax.usb.exception.UsbException;
-import javax.usb.ri.enumerated.EEndpointDirection;
-import javax.usb.ri.request.BMRequestType;
-import org.usb4java.javax.UsbDevice;
+import javax.usb.request.BMRequestType;
 
 /**
- * Library to detect and configure FTDI UART chips via the USB bus.
+ * Utility class to detect and configure FTDI UART chips via the USB bus.
  * <p>
  * This library is tuned to communicate and configure FT232R, FT2232 and FT232B
- * chips from Future Technology Devices International Ltd. Routines and BYTE
- * value constant in this class are rewritten in Java from the native "libftdi"
- * library originally written in C.
+ * series chips from Future Technology Devices International Ltd.
  * <p>
- * This utility class includes static methods useful for identifying and
- * controlling devices. To read and write data using a specific FTDI USB device
- * use {@link FTDI}.
+ * Routines and BYTE value constant in this class are rewritten in Java from the
+ * native {@code "libftdi"} library originally written in C.
  * <p>
- * This approach allows a user program to identify all attached FTDI UART chips
- * on the USB via {@link #findFTDIDevices()}, then to communicate with each
- * using multiple instances of the FTDI class.
+ * This utility class includes methods useful for <em>identifying</em>,
+ * <em>configuring</em> and <em>controlling</em> the USB port for a serial
+ * <strong>port</strong>. To <em>read from</em> and <em>write to</em> a specific
+ * USB <strong>device</strong> use the {@link FTDI} class.
  * <p>
+ * This utility class allows a user program to identify all attached FTDI UART
+ * chips on the USB via {@link #findFTDIDevices()}, then to communicate with
+ * each using multiple instances of the {@link FTDI} class.
+ *
  * @see <a
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.c">ftdi.c</a>
  * @see <a
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.h">ftdi.c</a>
  * @author Jesse Caulfield April, 25, 2014
  */
-public class FTDIUtil {
+public class FTDIUtility {
 
   /**
-   * 0403.
-   * <p>
-   * Future Technology Devices International Ltd. USB vendor ID.
+   * Future Technology Devices International Ltd. USB vendor ID. [0403]
    */
   public static final short VENDOR_ID = 0x0403;
   /**
-   * 6001, 6010, 6011.
-   * <p>
    * The FT232R, FT2232 and FT232B USB to serial converter chip sets.
+   * <p>
+   * [6001, 6010, 6011]
    */
   public static final Short[] PRODUCT_ID = new Short[]{0x6001, 0x6010, 0x6011};
+  /**
+   * 115200 bps. The default baud rate for most FTDI chips.
+   */
+  public static final int DEFAULT_BAUD_RATE = 115200;
 
   //<editor-fold defaultstate="collapsed" desc="Static FTDI Byte Constant Declarations">
   /**
@@ -75,7 +78,7 @@ public class FTDIUtil {
    * FTDI vendor-specific USB device control message to WRITE a configuration
    * parameter.
    * <p>
-   * This is the <code>bmRequestType</code> bitmapped field that identifies the
+   * This is the {@code bmRequestType} bitmapped field that identifies the
    * characteristics of a specific request.
    */
   public static final byte FTDI_USB_CONFIGURATION_WRITE = new BMRequestType(EEndpointDirection.HOST_TO_DEVICE,
@@ -85,7 +88,7 @@ public class FTDIUtil {
    * FTDI vendor-specific USB device control message to READ a configuration
    * parameter.
    * <p>
-   * This is the <code>bmRequestType</code> bitmapped field that identifies the
+   * This is the {@code bmRequestType} bitmapped field that identifies the
    * characteristics of a specific request.
    */
   public static final byte FTDI_USB_CONFIGURATION_READ = new BMRequestType(EEndpointDirection.DEVICE_TO_HOST,
@@ -135,25 +138,25 @@ public class FTDIUtil {
   public static final byte SIO_SET_RTS_LOW = (byte) ((SIO_SET_RTS_MASK << 8));
 //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="Static Utility Methods">
+  // FTDI USB Utility Methods
   /**
-   * Search the USB device tree and return all detected FTDI device. This scans
-   * the USB for FTDI vendor ID (0403) and any recognized UART product ID (6001,
-   * 6010, 6011).
+   * Search the USB device tree and return all detected FTDI devices.
    * <p>
+   * This method scans the USB tree for any device having a FTDI vendor ID
+   * (0403) and a recognized UART product ID (6001, 6010, 6011).
+   *
    * @return a non-null (but possibly empty) list of FTDI devices attached to
    *         the USB
    * @throws UsbException if the USB port cannot be read
    */
   public static List<IUsbDevice> findFTDIDevices() throws UsbException {
-//    return getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
-    return UsbDevice.getUsbDeviceList(UsbHostManager.getUsbServices().getRootUsbHub(), VENDOR_ID, Arrays.asList(PRODUCT_ID));
+    return UsbHostManager.getUsbDeviceList(VENDOR_ID, Arrays.asList(PRODUCT_ID));
   }
 
   /**
    * Set the serial port configuration. This is a convenience method to send
    * multiple USB control messages to the FTDI device.
-   * <p>
+   *
    * @param usbDevice         the USB Device to send the control message to
    * @param requestedBaudRate the requested baud rate (bits per second). e.g.
    *                          115200.
@@ -179,7 +182,7 @@ public class FTDIUtil {
   /**
    * Rest the FTDI UART configuration. This resets the serial port to its
    * default state.
-   * <p>
+   *
    * @param usbDevice the USB Device to send the control message to
    * @throws UsbException if the control message cannot be set
    */
@@ -193,12 +196,12 @@ public class FTDIUtil {
   /**
    * Set the link data rate (bits per second).
    * <p>
-   * The maximum Baud rate achieveable with FTDI's current devices is 3M Baud.
+   * The maximum Baud rate achievable with FTDI's current devices is 3M Baud.
    * <p>
    * The FT232R, FT2232 and FT232B chip sets support all standard baud rates and
    * non-standard baud rates from 300 Baud up to 3 Megabaud. The achievable baud
    * rates range is 183.1 baud to 3,000,000 baud.
-   * <p>
+   *
    * @param usbDevice         the USB Device to send the control message to
    * @param requestedBaudRate the requested baud rate (bits per second). e.g.
    *                          115200.
@@ -214,11 +217,11 @@ public class FTDIUtil {
   /**
    * A general method to set the baud rate for most all FTDI UART chip types.
    * <p>
-   * This method uses the more general baud rate calculator. It it functionally
-   * identical to the standard {@link #setBaudRate(javax.usb.IUsbDevice, int)}
-   * method and is included in this class only for reference and code
-   * completeness..
-   * <p>
+   * This method uses the more general/generic baud rate calculator. It it
+   * functionally identical to
+   * the{@link #setBaudRate(javax.usb.IUsbDevice, int)} method and is included
+   * in this class only for reference and code completeness..
+   *
    * @param usbDevice         the USB Device to send the control message to
    * @param requestedBaudRate the requested baud rate (bits per second). e.g.
    *                          115200.
@@ -226,7 +229,6 @@ public class FTDIUtil {
    * @throws UsbException if the baud rate cannot be set
    */
   public static int setBaudRate_General(IUsbDevice usbDevice, int requestedBaudRate) throws UsbException {
-
     /**
      * Convert the requested baud rate into an device configuration parameter.
      * Return the actual configured baud rate.
@@ -241,7 +243,7 @@ public class FTDIUtil {
 
   /**
    * Set the DTR line.
-   * <p>
+   *
    * @param usbDevice the FTDI USB device
    * @param state     TRUE to set high, FALSE to set low.
    * @throws UsbException if the device command message fails to set
@@ -255,7 +257,7 @@ public class FTDIUtil {
 
   /**
    * Set the RTS line.
-   * <p>
+   *
    * @param usbDevice the FTDI USB device
    * @param state     TRUE to set high, FALSE to set low.
    * @throws UsbException if the device command message fails to set
@@ -269,7 +271,7 @@ public class FTDIUtil {
 
   /**
    * Set the DTR and RTS lines.
-   * <p>
+   *
    * @param usbDevice the FTDI USB device
    * @param dtrState  TRUE to set high, FALSE to set low.
    * @param rtsState  TRUE to set high, FALSE to set low.
@@ -285,13 +287,13 @@ public class FTDIUtil {
   }
 
   /**
-   * Set flow control for ftdi chip. The FT245R, FT2232C (in FIFO mode) and
+   * Set flow control for the FTDI chip. The FT245R, FT2232C (in FIFO mode) and
    * FT245BM chips use their own handshaking as an integral part of its design,
    * by proper use of the TXE# line. The FT232R, FT2232C (in UART mode) and
    * FT232BM chips can use RTS/CTS, DTR/DSR hardware or XOn/XOff software
    * handshaking. It is highly recommended that some form of handshaking be
    * used.
-   * <p>
+   *
    * @param usbDevice   the FTDI USB device
    * @param flowcontrol flow control to use.
    * @throws UsbException if the device command message fails to set
@@ -306,7 +308,7 @@ public class FTDIUtil {
   /**
    * Set (RS232) line characteristics. The break type can only be set via
    * {@linkplain #setLineProperty} and defaults to "BREAK_OFF".
-   * <p>
+   *
    * @param usbDevice the FTDI USB device
    * @param bits      Number of bits
    * @param stopbits  Number of stop bits
@@ -320,9 +322,8 @@ public class FTDIUtil {
   /**
    * Set (RS232) line characteristics.
    * <p>
-   * This is a rewrite of the C method
-   * <code>ftdi_set_line_property2(....)</code>.
-   * <p>
+   * This is a rewrite of the C method {@code ftdi_set_line_property2(....)}.
+   *
    * @param usbDevice the FTDI USB device
    * @param bits      Number of bits
    * @param stopbits  Number of stop bits
@@ -418,20 +419,20 @@ public class FTDIUtil {
    * 489795.9, which is well within the allowed +/- 3% margin of error.
    * Therefore 490000 can be passed to the driver and the device will
    * communicate without errors.
-   * <p>
+   *
    * @see See AN232B-05_BaudRates.pdf, page 7.
-   * <p>
+   *
    * @param requestedBaudRate the (possibly non-standard) requested baud rate
    *                          (bits per second)
    * @return the nearest supported baud rate (bits per second)
    */
   private static short calculateBaudRate(int requestedBaudRate) {
     /**
-     * Developer note: The maximum Baud rate achieveable with FTDI's current
+     * Developer note: The maximum Baud rate achievable with FTDI's current
      * devices is 3M Baud. the Baud rate divisor must be calculated using the
      * following formula:
      * <p>
-     * <code>Integer Divisor + Sub-Integer Divisor = 3000000/Baud Rate</code>
+     * {@code Integer Divisor + Sub-Integer Divisor = 3000000/Baud Rate}
      * <p>
      * where the Integer Divisor is any integer between 2 and 16384 and the
      * Sub-Integer Divisor can be any one of 0, 0.125, 0.25, 0.375, 0.5, 0.625,
@@ -459,9 +460,16 @@ public class FTDIUtil {
      * which is within +/- 3% of the Baud rate originally set.
      */
     return (short) ((divisor << 16) >> 16);
-  }//</editor-fold>
+  }
 
   //<editor-fold defaultstate="collapsed" desc="Deprecated Native Translations">
+  /**
+   * Convert the requested baud rate into an device configuration parameter.
+   * Return the actual configured baud rate.
+   *
+   * @param baudrate the requested baud rate (bits per second). e.g. 115200.
+   * @return the FTDI baudrate configuration value (two bytes)
+   */
   private static short[] convertBaudrate(int baudrate) {
     // TODO(mikey): Braindead transcription of libfti method.  Clean up,
     // using more idiomatic Java where possible.
@@ -548,21 +556,22 @@ public class FTDIUtil {
 
   /**
    * Sets the chip baud rate. Method copied directly from "ftdi.c"
-   * <p>
+   *
    * @param iUsbDevice the FTDI USB device
    * @param baudrate   baud rate to set
    * @throws Exception if the command fails to set
-   * <p>
+   *
    * @deprecated 04/28/14 this method does not set the correct baud rate divisor
-   * value (it is always zero). this and supporting private calculator method
-   * were translated from C but the original included an EEPROM query that is
-   * not yet available from JAVA. Use setBaudRate() instead.
+   * value (it is always zero). This and the supporting private calculator
+   * method were translated from C but the original included an EEPROM query is
+   * not available from JAVA. Use
+   * {@link #setBaudRate(javax.usb.IUsbDevice, int)} or
+   * {@link #setBaudRate_General(javax.usb.IUsbDevice, int)} instead.
    */
   public static void ftdi_set_baudrate(IUsbDevice iUsbDevice, int baudrate) throws Exception {
     short value = 0;
     short index = 0;
     int actual_baudrate;
-
     /**
      * Developer note: bitbang availability/enablement is identified from an
      * EEPROM query.
@@ -580,8 +589,8 @@ public class FTDIUtil {
      * Check within tolerance (about 5%) and Catch overflows
      */
     if ((actual_baudrate * 2 < baudrate) || ((actual_baudrate < baudrate)
-      ? (actual_baudrate * 21 < baudrate * 20)
-      : (baudrate * 21 < actual_baudrate * 20))) {
+                                             ? (actual_baudrate * 21 < baudrate * 20)
+                                             : (baudrate * 21 < actual_baudrate * 20))) {
       throw new Exception("Unsupported baudrate. Note: bitbang baudrates are automatically multiplied by 4");
     }
     //    device.syncSubmit(device.createUsbControlIrp(bmRequestType, SET_BAUDRATE_REQUEST, value, index));
@@ -594,8 +603,13 @@ public class FTDIUtil {
   /**
    * ftdi_convert_baudrate returns nearest supported baud rate to that
    * requested. Function is only used internally \internal
+   *
+   * @param baudrate the baud rate to set
+   * @param value    a short value
+   * @param index    an index value
+   * @return the baudrate value
+   * @deprecated see ftdi_set_baudrate for details.
    */
-  @SuppressWarnings("AssignmentToMethodParameter")
   private static int ftdi_convert_baudrate(int baudrate, short value, short index) {
     int best_baud;
     long encoded_divisor = 0;
@@ -665,8 +679,14 @@ public class FTDIUtil {
    * <p>
    * AM Type chips have only four fractional subdivisors at value[15:14] for
    * subdivisors 0, 0.5, 0.25, 0.125
+   *
+   * @param baudrate        the baudrate
+   * @param clk             a clock rate
+   * @param clk_div         a clock divisor
+   * @param encoded_divisor the encoded divisor
+   * @return a clock bit
+   * @deprecated see ftdi_set_baudrate for details.
    */
-  @SuppressWarnings("AssignmentToMethodParameter")
   private static int ftdi_to_clkbits(int baudrate, int clk, int clk_div, long encoded_divisor) {
     byte frac_code[] = {0, 3, 2, 4, 1, 5, 6, 7};
     int best_baud, divisor, best_divisor;
@@ -716,8 +736,13 @@ public class FTDIUtil {
    * <p>
    * See AN120 clk/1 -> 0 clk/1.5 -> 1 clk/2 -> 2 From /2, 0.125/ 0.25 and 0.5
    * steps may be taken The fractional part has frac_code encoding
+   *
+   * @param baudrate        the baudrate
+   * @param encoded_divisor the encoded divisor
+   * @return a int value
+   * @deprecated see ftdi_set_baudrate for details.
    */
-  @SuppressWarnings("AssignmentToMethodParameter")
+  @SuppressWarnings({"AssignmentToMethodParameter", "UnusedAssignment"})
   private static int ftdi_to_clkbits_AM(int baudrate, long encoded_divisor) {
     byte frac_code[] = {0, 3, 2, 4, 1, 5, 6, 7};
     byte am_adjust_up[] = {0, 0, 0, 1, 0, 3, 2, 1};
