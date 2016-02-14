@@ -57,7 +57,7 @@ package com.ftdichip.usb.enumerated;
  * contain the same result but it has also been sampling the pins continuously
  * (up until its buffers become full). Therefor the data in the Read pipe will
  * be old.
- * <p>
+ *
  * @see Application Note AN232BM-01
  * @author Jesse Caulfield
  */

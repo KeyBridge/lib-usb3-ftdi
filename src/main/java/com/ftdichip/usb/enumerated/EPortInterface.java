@@ -20,7 +20,7 @@ package com.ftdichip.usb.enumerated;
 
 /**
  * Port interface for chips with multiple interfaces
- * <p>
+ *
  * @author Jesse Caulfield
  */
 public enum EPortInterface {

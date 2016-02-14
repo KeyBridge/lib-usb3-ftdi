@@ -25,23 +25,24 @@
  */
 package com.ftdichip.usb;
 
-import static com.ftdichip.usb.FTDIUtil.*;
+import static com.ftdichip.usb.FTDIUtility.MODEM_STATUS_HEADER_LENGTH;
 import com.ftdichip.usb.enumerated.EFlowControl;
 import com.ftdichip.usb.enumerated.ELineDatabits;
 import com.ftdichip.usb.enumerated.ELineParity;
 import com.ftdichip.usb.enumerated.ELineStopbits;
 import java.util.Arrays;
 import javax.usb.*;
+import javax.usb.enumerated.EEndpointDirection;
 import javax.usb.exception.UsbDisconnectedException;
 import javax.usb.exception.UsbException;
 import javax.usb.exception.UsbNotActiveException;
-import javax.usb.ri.enumerated.EEndpointDirection;
 
 /**
- * FTDI UART read/write utility. This class
+ * FTDI UART read/write utility.
  * <p>
- * This library is tuned to communicate with FT232R, FT2232 and FT232B chips
- * from Future Technology Devices International Ltd.
+ * This class library is tuned to communicate with {@code FT232R},
+ * {@code FT2232} and {@code FT232B} chips from Future Technology Devices
+ * International Ltd.
  * <p>
  * Developer note: There is an synchronous and asynchronous WRITE method but no
  * asynchronous READ method. This class wraps the USB I/O read transaction to
@@ -49,17 +50,12 @@ import javax.usb.ri.enumerated.EEndpointDirection;
  * information before passing data to the reader. This strategy provides a clean
  * READ transaction but would require adding (yet another layer of) event
  * listener/notifier logic to support asynchronous reads. If you really need
- * ASYNC read then you should directly access the {@linkplain UsbPipe}, which
- * already has a listener interface.
- * <p>
+ * ASYNC read then you should directly access the {@code UsbPipe}, which already
+ * has a listener interface.
+ *
  * @author Jesse Caulfield May 06, 2014
  */
 public class FTDI {
-
-  /**
-   * 115200 bps. The default baud rate for most FTDI chips.
-   */
-  public static final int DEFAULT_BAUD_RATE = 115200;
 
   /**
    * The USB Device to which this FTDI instance is attached.
@@ -94,7 +90,7 @@ public class FTDI {
    * A user can identify all attached FTDI UART chips on the USB with methods in
    * the {@link #FTDIUtil} class, then communicate with each desired device
    * using one or more instances of this FTDI class.
-   * <p>
+   *
    * @param usbDevice the specific UsbDevice instance to communicate with
    * @throws UsbException if the USB device is not readable/writable by the
    *                      current user (permission error)
@@ -152,7 +148,12 @@ public class FTDI {
     /**
      * Set the serial line configuration.
      */
-    FTDIUtil.setSerialPort(usbDevice, DEFAULT_BAUD_RATE, ELineDatabits.BITS_8, ELineStopbits.STOP_BIT_1, ELineParity.NONE, EFlowControl.DISABLE_FLOW_CTRL);
+    FTDIUtility.setSerialPort(usbDevice,
+                              FTDIUtility.DEFAULT_BAUD_RATE,
+                              ELineDatabits.BITS_8,
+                              ELineStopbits.STOP_BIT_1,
+                              ELineParity.NONE,
+                              EFlowControl.DISABLE_FLOW_CTRL);
     /**
      * Add a shutdown hook to disconnect the USB interface and close the USB
      * port when shutting down. This will un-claim the device.
@@ -173,8 +174,8 @@ public class FTDI {
   /**
    * Set the serial port configuration. This is a convenience method to send
    * multiple USB control messages to the FTDI device. It is a shortcut to the
-   * same method in {@linkplain FTDIUtil}.
-   * <p>
+   * same method in {@link FTDIUtility}.
+   *
    * @param requestedBaudRate the requested baud rate (bits per second). e.g.
    *                          115200.
    * @param bits              Number of bits
@@ -190,14 +191,14 @@ public class FTDI {
                             ELineStopbits stopbits,
                             ELineParity parity,
                             EFlowControl flowControl) throws UsbException {
-    FTDIUtil.setSerialPort(usbDevice, requestedBaudRate, bits, stopbits, parity, flowControl);
+    FTDIUtility.setSerialPort(usbDevice, requestedBaudRate, bits, stopbits, parity, flowControl);
   }
 
   /**
    * Asynchronously write a byte[] array to the FTDI port.
    * <p>
    * The default timeout value set in the properties file is used.
-   * <p>
+   *
    * @param data A byte array containing the data to write to the device.
    * @exception UsbException If an error occurs.
    */
@@ -220,7 +221,7 @@ public class FTDI {
    * transactions (e.g. within a FOR/WHILE loop). If you need to add a
    * Thread.sleep() delay sleep values of between 5 and 10 milliseconds are
    * typically sufficient.
-   * <p>
+   *
    * @param data A byte array containing the data to write to the device.
    * @return The number of bytes actually transferred to the device.
    * @exception UsbException If an error occurs.
@@ -239,7 +240,7 @@ public class FTDI {
    * This method automatically strips the FTDI modem status header bytes and
    * only returns actual device data.
    * <p>
-   * The maximum length of the array is the <code>wMaxPacketSize</code> value
+   * The maximum length of the array is the {@code wMaxPacketSize} value
    * provided by the USB EndPoint descriptor (typically 64 bytes but up to 512
    * bytes for some newer, faster chips). If there is no data on the device an
    * empty array (length = 0) is returned.
@@ -248,7 +249,7 @@ public class FTDI {
    * the query speed: e.g. slower HOST polling results in longer data arrays as
    * the device is able to stuff more data into its out buffer between each
    * request.
-   * <p>
+   *
    * @return a non-null, variable length byte array containing the actual data
    *         read from the device. The actual length of the byte array ranges
    *         between 0 (empty) and 64 bytes (typ), but may be up to 512 bytes.
@@ -272,8 +273,8 @@ public class FTDI {
      * the MODEM_STATUS_HEADER and return only the data.
      */
     return bytesRead == MODEM_STATUS_HEADER_LENGTH
-      ? new byte[0]
-      : Arrays.copyOfRange(usbPacket, MODEM_STATUS_HEADER_LENGTH, bytesRead);
+           ? new byte[0]
+           : Arrays.copyOfRange(usbPacket, MODEM_STATUS_HEADER_LENGTH, bytesRead);
   }
 
   @Override

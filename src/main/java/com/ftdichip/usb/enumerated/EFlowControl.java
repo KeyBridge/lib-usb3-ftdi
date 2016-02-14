@@ -37,7 +37,7 @@ package com.ftdichip.usb.enumerated;
  * <p>
  * If the data rate is low or data loss is acceptable then flow control may be
  * omitted.
- * <p>
+ *
  * @author Jesse Caulfield
  */
 public enum EFlowControl {

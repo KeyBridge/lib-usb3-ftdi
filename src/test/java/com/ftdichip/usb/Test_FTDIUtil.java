@@ -31,9 +31,9 @@ public class Test_FTDIUtil {
 
   @Test
   public void testFTDI() throws UsbException {
-    List<IUsbDevice> devices = FTDIUtil.findFTDIDevices();
+    List<IUsbDevice> devices = FTDIUtility.findFTDIDevices();
     for (IUsbDevice iUsbDevice : devices) {
-      System.out.println("debug " + iUsbDevice);
+      System.out.println("FOUND FTDI device:  " + iUsbDevice);
     }
   }
 }
