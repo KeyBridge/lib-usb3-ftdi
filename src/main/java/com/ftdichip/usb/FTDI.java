@@ -186,6 +186,23 @@ public final class FTDI {
   }
 
   /**
+   * Close the FTDI port and release this interface to it may be used by another
+   * application.
+   * <p>
+   * This will only succeed if the interface has been properly claimed. If the
+   * native release fails, this will fail. This should be done after the
+   * interface is no longer being used. All pipes must be closed before this can
+   * be released.
+   */
+  public void close() {
+    try {
+      usbInterface.release();
+      Thread.sleep(250); // wait a quarter second for stuff to settle
+    } catch (UsbException | UsbNotActiveException | UsbDisconnectedException | InterruptedException ex) {
+    }
+  }
+
+  /**
    * Set the serial port configuration. This is a convenience method to send
    * multiple USB control messages to the FTDI device. It is a shortcut to the
    * same method in {@link FTDIUtility}.
