@@ -1,26 +1,23 @@
 /*
- * Copyright (C) 2014 Jesse Caulfield <jesse@caulfield.org>.
+ * Copyright 2014-2016 Key Bridge LLC.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.ftdichip.usb;
 
 import com.ftdichip.usb.enumerated.*;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import javax.usb.IUsbDevice;
 import javax.usb.UsbHostManager;
 import javax.usb.enumerated.EEndpointDirection;
@@ -49,7 +46,8 @@ import javax.usb.request.BMRequestType;
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.c">ftdi.c</a>
  * @see <a
  * href="https://github.com/legege/libftdi/blob/master/src/ftdi.h">ftdi.c</a>
- * @author Jesse Caulfield April, 25, 2014
+ * @author Jesse Caulfield
+ * @since v1.0.0 April, 25, 2014
  */
 public class FTDIUtility {
 
@@ -149,34 +147,8 @@ public class FTDIUtility {
    *         the USB
    * @throws UsbException if the USB port cannot be read
    */
-  public static List<IUsbDevice> findFTDIDevices() throws UsbException {
+  public static Collection<IUsbDevice> findFTDIDevices() throws UsbException {
     return UsbHostManager.getUsbDeviceList(VENDOR_ID, Arrays.asList(PRODUCT_ID));
-  }
-
-  /**
-   * Set the serial port configuration. This is a convenience method to send
-   * multiple USB control messages to the FTDI device.
-   *
-   * @param usbDevice         the USB Device to send the control message to
-   * @param requestedBaudRate the requested baud rate (bits per second). e.g.
-   *                          115200.
-   * @param bits              Number of bits
-   * @param stopbits          Number of stop bits
-   * @param parity            LineParity mode
-   * @param flowControl       flow control to use.
-   * @throws UsbException if the FTDI UART cannot be configured or control
-   *                      messages cannot be sent (e.g. insufficient
-   *                      permissions)
-   */
-  public static void setSerialPort(IUsbDevice usbDevice,
-                                   int requestedBaudRate,
-                                   ELineDatabits bits,
-                                   ELineStopbits stopbits,
-                                   ELineParity parity,
-                                   EFlowControl flowControl) throws UsbException {
-    setBaudRate(usbDevice, requestedBaudRate);
-    setLineProperty(usbDevice, bits, stopbits, parity);
-    setFlowControl(usbDevice, flowControl);
   }
 
   /**
