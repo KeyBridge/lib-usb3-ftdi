@@ -1,0 +1,5 @@
+For Debian-flavor systems
+
+Install udev rules to /etc/udev/rules.d
+
+Copy the file 99-libftdi.rules to /etc/udev/rules.d
