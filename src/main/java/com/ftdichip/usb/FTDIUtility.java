@@ -18,11 +18,11 @@ package com.ftdichip.usb;
 import com.ftdichip.usb.enumerated.*;
 import java.util.Arrays;
 import java.util.Collection;
-import javax.usb.IUsbDevice;
-import javax.usb.UsbHostManager;
-import javax.usb.enumerated.EEndpointDirection;
-import javax.usb.exception.UsbException;
-import javax.usb.request.BMRequestType;
+import javax.usb3.IUsbDevice;
+import javax.usb3.UsbHostManager;
+import javax.usb3.enumerated.EEndpointDirection;
+import javax.usb3.exception.UsbException;
+import javax.usb3.request.BMRequestType;
 
 /**
  * Utility class to detect and configure FTDI UART chips via the USB bus.

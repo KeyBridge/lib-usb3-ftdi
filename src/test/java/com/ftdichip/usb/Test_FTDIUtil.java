@@ -19,9 +19,9 @@
 package com.ftdichip.usb;
 
 import java.util.Collection;
-import javax.usb.IUsbDevice;
-import javax.usb.exception.UsbException;
-import javax.usb.utility.ByteUtility;
+import javax.usb3.IUsbDevice;
+import javax.usb3.exception.UsbException;
+import javax.usb3.utility.ByteUtility;
 import org.junit.Test;
 
 /**

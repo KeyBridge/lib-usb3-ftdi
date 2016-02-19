@@ -21,11 +21,11 @@ import com.ftdichip.usb.enumerated.ELineDatabits;
 import com.ftdichip.usb.enumerated.ELineParity;
 import com.ftdichip.usb.enumerated.ELineStopbits;
 import java.util.Arrays;
-import javax.usb.*;
-import javax.usb.enumerated.EEndpointDirection;
-import javax.usb.exception.UsbDisconnectedException;
-import javax.usb.exception.UsbException;
-import javax.usb.exception.UsbNotActiveException;
+import javax.usb3.*;
+import javax.usb3.enumerated.EEndpointDirection;
+import javax.usb3.exception.UsbDisconnectedException;
+import javax.usb3.exception.UsbException;
+import javax.usb3.exception.UsbNotActiveException;
 
 /**
  * FTDI UART read/write utility.
@@ -126,7 +126,7 @@ public final class FTDI {
     /**
      * USB Interfaces: When you want to communicate with an interface or with
      * endpoints of this interface then you have to claim it before using it and
-     * you have to release it when you are finished. Example:
+     * you have to release it when you are finished.
      */
     IUsbConfiguration configuration = usbDevice.getActiveUsbConfiguration();
     /**
@@ -139,7 +139,7 @@ public final class FTDI {
      * active. If this configuration is not active, the returned interface
      * setting will be an implementation-dependent alternate setting.
      */
-    usbInterface = configuration.getUsbInterfaces().get(0);
+    usbInterface = configuration.getUsbInterfaces().iterator().next();
     /**
      * Claim this USB interface. This will attempt whatever claiming the native
      * implementation provides, if any. If the interface is already claimed, or
