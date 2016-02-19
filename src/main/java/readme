@@ -19,10 +19,8 @@ License
   The library itself is licensed under LGPL 2.1 (not any later),
   the EEPROM programmer is licensed under GPL 2 (not any later)
 
-  Accordingly, JAVA source code is licensed under LGPL 2.1.
-
 Requirements and dependencies
-  This library depends upon the javax-usb implementation library.
+  This library depends upon the javax-usb3 implementation library.
 
 Supports:
 This (Java) library has been tested against, and is affirmed to suport the
