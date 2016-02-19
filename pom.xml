@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>keybridge.lib</groupId>
-  <artifactId>lib-javax-usb-ftdi</artifactId>
-  <version>1.1.1</version>
+  <artifactId>usb3-ftdi</artifactId>
+  <version>1.2.0</version>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,8 +18,9 @@
     v1.0.0 - initial release
     v1.1.0 - update to use maven build system
     v1.1.1 - refactor for javax.usb changes
+    v1.2.0 - rewrite for usb3, rewrite FTDI wrapper &amp; utility, rename from javax-usb-ftdi to usb3-ftdi
   </description>
-  <name>javax-usb-ftdi</name>
+  <name>usb3-ftdi</name>
   <organization>
     <name>Key Bridge</name>
     <url>http://keybridge.ch</url>
@@ -40,7 +41,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>lib-javax-usb</artifactId>
+      <artifactId>javax-usb</artifactId>
       <version>1.3.0</version>
     </dependency>
   </dependencies>
