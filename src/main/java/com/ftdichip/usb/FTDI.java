@@ -1,27 +1,17 @@
 /*
- * Copyright (c) 2014, Jesse Caulfield <jesse@caulfield.org>
- * All rights reserved.
+ * Copyright 2014-2016 Key Bridge LLC.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.ftdichip.usb;
 
@@ -53,9 +43,10 @@ import javax.usb.exception.UsbNotActiveException;
  * ASYNC read then you should directly access the {@code UsbPipe}, which already
  * has a listener interface.
  *
- * @author Jesse Caulfield May 06, 2014
+ * @author Jesse Caulfield
+ * @since v1.0.0 May 06, 2014
  */
-public class FTDI {
+public final class FTDI {
 
   /**
    * The USB Device to which this FTDI instance is attached.
@@ -83,13 +74,45 @@ public class FTDI {
    * Construct a new FTDI (read, write) instance.
    * <p>
    * The serial port is automatically configured for default operation at 115200
-   * bps, 8 data bits, no parity, 1 stop bit, no flow control. Use
-   * {@link #setSerialPort(int, com.ftdichip.usb.enumerated.ELineDatabits, com.ftdichip.usb.enumerated.ELineStopbits, com.ftdichip.usb.enumerated.ELineParity, com.ftdichip.usb.enumerated.EFlowControl)}
-   * to set your required line configuration.
+   * bps, 8 data bits, no parity, 1 stop bit, no flow control.
    * <p>
    * A user can identify all attached FTDI UART chips on the USB with methods in
    * the {@link #FTDIUtil} class, then communicate with each desired device
    * using one or more instances of this FTDI class.
+   *
+   * @param usbDevice the specific UsbDevice instance to communicate with
+   * @throws UsbException if the USB device is not readable/writable by the
+   *                      current user (permission error)
+   */
+  public static FTDI getInstance(IUsbDevice usbDevice) throws UsbException {
+    /**
+     * Claim the USB device.
+     */
+    FTDI ftdi = new FTDI(usbDevice);
+    /**
+     * Set the serial line configuration: 115200 bps, 8, N, 1, no flow control.
+     */
+    ftdi.configureSerialPort(FTDIUtility.DEFAULT_BAUD_RATE,
+                             ELineDatabits.BITS_8,
+                             ELineStopbits.STOP_BIT_1,
+                             ELineParity.NONE,
+                             EFlowControl.DISABLE_FLOW_CTRL);
+    /**
+     * Set the DTR and RTS lines.
+     */
+    FTDIUtility.setDTRRTS(usbDevice, false, true);
+    return ftdi;
+  }
+
+  /**
+   * Construct a new FTDI (read, write) instance.
+   * <p>
+   * Important: The serial port is NOT CONFIGURED when using this constructor.
+   * You MUST configure the serial port prior to use via
+   * {@link #configureSerialPort(int, com.ftdichip.usb.enumerated.ELineDatabits, com.ftdichip.usb.enumerated.ELineStopbits, com.ftdichip.usb.enumerated.ELineParity, com.ftdichip.usb.enumerated.EFlowControl)}.
+   * <p>
+   * In most circumstances a serial port configuration of 115200 bps, 8 data
+   * bits, no parity, 1 stop bit, no flow control will work.
    *
    * @param usbDevice the specific UsbDevice instance to communicate with
    * @throws UsbException if the USB device is not readable/writable by the
@@ -146,15 +169,6 @@ public class FTDI {
       }
     }
     /**
-     * Set the serial line configuration.
-     */
-    FTDIUtility.setSerialPort(usbDevice,
-                              FTDIUtility.DEFAULT_BAUD_RATE,
-                              ELineDatabits.BITS_8,
-                              ELineStopbits.STOP_BIT_1,
-                              ELineParity.NONE,
-                              EFlowControl.DISABLE_FLOW_CTRL);
-    /**
      * Add a shutdown hook to disconnect the USB interface and close the USB
      * port when shutting down. This will un-claim the device.
      */
@@ -186,18 +200,22 @@ public class FTDI {
    *                      messages cannot be sent (e.g. insufficient
    *                      permissions)
    */
-  public void setSerialPort(int requestedBaudRate,
-                            ELineDatabits bits,
-                            ELineStopbits stopbits,
-                            ELineParity parity,
-                            EFlowControl flowControl) throws UsbException {
-    FTDIUtility.setSerialPort(usbDevice, requestedBaudRate, bits, stopbits, parity, flowControl);
+  public void configureSerialPort(int requestedBaudRate,
+                                  ELineDatabits bits,
+                                  ELineStopbits stopbits,
+                                  ELineParity parity,
+                                  EFlowControl flowControl) throws UsbException {
+    FTDIUtility.setBaudRate(usbDevice, requestedBaudRate);
+    FTDIUtility.setLineProperty(usbDevice, bits, stopbits, parity);
+    FTDIUtility.setFlowControl(usbDevice, flowControl);
   }
 
   /**
-   * Asynchronously write a byte[] array to the FTDI port.
+   * Asynchronously write a byte[] array to the FTDI port input buffer.
    * <p>
-   * The default timeout value set in the properties file is used.
+   * The javax.usb default timeout value of (5000 ms) is used. i.e. This method
+   * returns immediately but the system will try (for up to the timeout value)
+   * to write data to the USB pipe.
    *
    * @param data A byte array containing the data to write to the device.
    * @exception UsbException If an error occurs.
@@ -212,15 +230,18 @@ public class FTDI {
   }
 
   /**
-   * Synchronously write a byte[] array to the FTDI port.
+   * Synchronously write a byte[] array to the FTDI port input buffer.
    * <p>
    * Developer note: This method returns immediately upon completion, which is
-   * when the data has been stuffed into the device IN buffer. Some (slower)
-   * devices require a little time to read out and process instructions in the
-   * buffer. This is especially important during rapid-fire write/read
-   * transactions (e.g. within a FOR/WHILE loop). If you need to add a
-   * Thread.sleep() delay sleep values of between 5 and 10 milliseconds are
-   * typically sufficient.
+   * when the data has been stuffed into the device IN buffer but not
+   * necessarily when the device has read or acted upon the data.
+   * <p>
+   * Some (slower) USB devices require a little time to read and process
+   * instructions from their input buffer. It is important to consider and
+   * account for this potential delay during rapid-fire write/read transactions
+   * (e.g. within a FOR/WHILE loop). Semaphore (lock objects) or a
+   * Thread.sleep() delay of between 5 and 10 milliseconds are typically
+   * sufficient.
    *
    * @param data A byte array containing the data to write to the device.
    * @return The number of bytes actually transferred to the device.
@@ -234,25 +255,25 @@ public class FTDI {
   }
 
   /**
-   * Synchronously read available data from the FTDI port and return the data as
-   * a new byte[] array.
+   * Read a USB frame: Synchronously read available data from the FTDI port
+   * output buffer.
    * <p>
-   * This method automatically strips the FTDI modem status header bytes and
-   * only returns actual device data.
+   * Developer note: This method automatically strips the FTDI modem status
+   * header bytes and only returns actual device data.
    * <p>
-   * The maximum length of the array is the {@code wMaxPacketSize} value
-   * provided by the USB EndPoint descriptor (typically 64 bytes but up to 512
-   * bytes for some newer, faster chips). If there is no data on the device an
-   * empty array (length = 0) is returned.
+   * The maximum length of the returned data byte array is the
+   * {@code wMaxPacketSize} value provided by the USB EndPoint descriptor
+   * (typically 64 bytes but up to 512 bytes for some newer, faster chips). If
+   * there is no data on the device an empty array (length = 0) is returned.
    * <p>
-   * The actual length of the data array returned can be highly dependent upon
-   * the query speed: e.g. slower HOST polling results in longer data arrays as
-   * the device is able to stuff more data into its out buffer between each
-   * request.
+   * The actual length of the data array returned is highly variable and depends
+   * upon the query speed: e.g. slower HOST polling results in longer data
+   * arrays as the device is able to stuff more data into its output buffer
+   * between each request.
    *
    * @return a non-null, variable length byte array containing the actual data
-   *         read from the device. The actual length of the byte array ranges
-   *         between 0 (empty) and 64 bytes (typ), but may be up to 512 bytes.
+   *         produced by the device. The length of the byte array ranges between
+   *         0 (empty) and 64 bytes (typ), but may be up to 512 bytes.
    * @throws UsbException if the USB Port fails to read
    */
   public byte[] read() throws UsbException {
@@ -260,21 +281,25 @@ public class FTDI {
       usbPipeRead.open();
     }
     /**
-     * Developer note: The syncSubmit (and presumably asyncSubmit) do not clear
-     * the input byte array - they merely write bytes into the provided array.
-     * Reusing a previously populated byte array creates JUNK data as new bytes
-     * are written over the old bytes but if the new packet is shorter then old
-     * bytes will remain.
+     * Developer note: Always initialize and use a new byte array when reading
+     * from a USB pipe!
+     * <p>
+     * The syncSubmit and presumably asyncSubmit methods do not clear the input
+     * byte array - they merely write bytes into the provided array. Reusing a
+     * previously populated byte array may produce JUNK data as new bytes are
+     * written over the old bytes. If the new USB frame is shorter than the
+     * previous then stale bytes will remain in the buffer and not be
+     * overwritten or cleared.
      */
-    byte[] usbPacket = new byte[usbPipeRead.getUsbEndpoint().getUsbEndpointDescriptor().wMaxPacketSize()];
-    int bytesRead = usbPipeRead.syncSubmit(usbPacket);
+    byte[] usbFrame = new byte[usbPipeRead.getUsbEndpoint().getUsbEndpointDescriptor().wMaxPacketSize()];
+    int bytesRead = usbPipeRead.syncSubmit(usbFrame);
     /**
      * Return an empty array if there is no data on the line. Otherwise strip
-     * the MODEM_STATUS_HEADER and return only the data.
+     * the MODEM_STATUS_HEADER and return only the device data.
      */
     return bytesRead == MODEM_STATUS_HEADER_LENGTH
            ? new byte[0]
-           : Arrays.copyOfRange(usbPacket, MODEM_STATUS_HEADER_LENGTH, bytesRead);
+           : Arrays.copyOfRange(usbFrame, MODEM_STATUS_HEADER_LENGTH, bytesRead);
   }
 
   @Override
