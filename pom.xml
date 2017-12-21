@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>keybridge.lib</groupId>
   <artifactId>usb3-ftdi</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
   <packaging>jar</packaging>
 
   <name>usb3-ftdi</name>
@@ -21,6 +21,7 @@
     v1.1.0 - update to use maven build system
     v1.1.1 - refactor for javax.usb changes
     v1.2.0 - rewrite for usb3, rewrite FTDI wrapper &amp; utility, rename from javax-usb-ftdi to usb3-ftdi
+    v1.3.0 - rename enumerated types
 
   </description>
   <organization>
