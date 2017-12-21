@@ -37,7 +37,7 @@ package com.ftdichip.usb.enumerated;
  *
  * @author Jesse Caulfield
  */
-public enum EFlowControl {
+public enum FlowControlType {
 
   /**
    * None - this may result in data loss at high speeds.
@@ -61,7 +61,7 @@ public enum EFlowControl {
   XON_XOFF_HS((byte) (0x4 << 8));
   private final byte bytecode;
 
-  private EFlowControl(byte bytecode) {
+  private FlowControlType(byte bytecode) {
     this.bytecode = bytecode;
   }
 

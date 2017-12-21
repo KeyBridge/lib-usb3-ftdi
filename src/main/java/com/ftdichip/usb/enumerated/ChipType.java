@@ -20,7 +20,7 @@ package com.ftdichip.usb.enumerated;
  *
  * @author Jesse Caulfield
  */
-public enum EChipType {
+public enum ChipType {
 
   TYPE_AM(0),
   TYPE_BM(1),
@@ -32,7 +32,7 @@ public enum EChipType {
   TYPE_230X(7);
   private final int chipType;
 
-  private EChipType(int chipType) {
+  private ChipType(int chipType) {
     this.chipType = chipType;
   }
 

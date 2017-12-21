@@ -20,7 +20,7 @@ package com.ftdichip.usb.enumerated;
  *
  * @author Jesse Caulfield
  */
-public enum ELineParity {
+public enum LineParityType {
 
   /**
    * No line parity.
@@ -46,7 +46,7 @@ public enum ELineParity {
   SPACE(4);
   private final int parity;
 
-  private ELineParity(int parity) {
+  private LineParityType(int parity) {
     this.parity = parity;
   }
 

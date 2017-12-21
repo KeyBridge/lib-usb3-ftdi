@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014-2016 Key Bridge LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,25 +16,21 @@
 package com.ftdichip.usb.enumerated;
 
 /**
- * Port interface for chips with multiple interfaces
+ * Number of stop bits for ftdi_set_line_property()
  *
  * @author Jesse Caulfield
  */
-public enum EPortInterface {
+public enum LineStopbitType {
 
-  INTERFACE_ANY(0),
-  INTERFACE_A(1),
-  INTERFACE_B(2),
-  INTERFACE_C(3),
-  INTERFACE_D(4);
-  private final int index;
+  STOP_BIT_1(0), STOP_BIT_15(1), STOP_BIT_2(2);
+  private final int stopbit;
 
-  private EPortInterface(int index) {
-    this.index = index;
+  private LineStopbitType(int stopbit) {
+    this.stopbit = stopbit;
   }
 
-  public int getIndex() {
-    return index;
+  public int getStopbit() {
+    return stopbit;
   }
 
 }

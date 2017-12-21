@@ -58,7 +58,7 @@ package com.ftdichip.usb.enumerated;
  * @see Application Note AN232BM-01
  * @author Jesse Caulfield
  */
-public enum EBitMode {
+public enum BitModeType {
 
   /**
    * Switch off bitbang mode, back to regular serial/FIFO.
@@ -102,7 +102,7 @@ public enum EBitMode {
 
   private final byte mask;
 
-  private EBitMode(byte mask) {
+  private BitModeType(byte mask) {
     this.mask = mask;
   }
 

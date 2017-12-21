@@ -16,21 +16,25 @@
 package com.ftdichip.usb.enumerated;
 
 /**
- * Number of stop bits for ftdi_set_line_property()
+ * Port interface for chips with multiple interfaces
  *
  * @author Jesse Caulfield
  */
-public enum ELineStopbits {
+public enum PortInterfaceType {
 
-  STOP_BIT_1(0), STOP_BIT_15(1), STOP_BIT_2(2);
-  private final int stopbit;
+  INTERFACE_ANY(0),
+  INTERFACE_A(1),
+  INTERFACE_B(2),
+  INTERFACE_C(3),
+  INTERFACE_D(4);
+  private final int index;
 
-  private ELineStopbits(int stopbit) {
-    this.stopbit = stopbit;
+  private PortInterfaceType(int index) {
+    this.index = index;
   }
 
-  public int getStopbit() {
-    return stopbit;
+  public int getIndex() {
+    return index;
   }
 
 }
