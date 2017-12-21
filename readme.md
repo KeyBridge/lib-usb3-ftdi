@@ -85,4 +85,4 @@ Apache 2.0.
 # Contact
 
 For more information about this and related software please contact
-[Key Bridge](http://keybridgeglobal.com)
+[Key Bridge](http://keybridge.ch)
