@@ -16,21 +16,21 @@
 package com.ftdichip.usb.enumerated;
 
 /**
- * Number of stop bits for ftdi_set_line_property()
+ * Number of bits for ftdi_set_line_property()
  *
  * @author Jesse Caulfield
  */
-public enum LineStopbitType {
+public enum LineDatabit {
 
-  STOP_BIT_1(0), STOP_BIT_15(1), STOP_BIT_2(2);
-  private final int stopbit;
+  BITS_7(7), BITS_8(8);
+  private final int bits;
 
-  private LineStopbitType(int stopbit) {
-    this.stopbit = stopbit;
+  private LineDatabit(int bits) {
+    this.bits = bits;
   }
 
-  public int getStopbit() {
-    return stopbit;
+  public int getBits() {
+    return bits;
   }
 
 }

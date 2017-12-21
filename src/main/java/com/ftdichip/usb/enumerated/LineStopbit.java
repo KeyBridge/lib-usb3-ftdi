@@ -16,21 +16,21 @@
 package com.ftdichip.usb.enumerated;
 
 /**
- * Break type for ftdi_set_line_property2()
+ * Number of stop bits for ftdi_set_line_property()
  *
  * @author Jesse Caulfield
  */
-public enum LineBreakType {
+public enum LineStopbit {
 
-  BREAK_OFF(0), BREAK_ON(1);
-  private final int breakType;
+  STOP_BIT_1(0), STOP_BIT_15(1), STOP_BIT_2(2);
+  private final int stopbit;
 
-  private LineBreakType(int breakType) {
-    this.breakType = breakType;
+  private LineStopbit(int stopbit) {
+    this.stopbit = stopbit;
   }
 
-  public int getBreakType() {
-    return breakType;
+  public int getStopbit() {
+    return stopbit;
   }
 
 }
