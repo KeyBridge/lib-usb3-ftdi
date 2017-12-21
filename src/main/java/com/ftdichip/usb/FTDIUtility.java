@@ -270,7 +270,7 @@ public class FTDIUtility {
    * @param flowcontrol flow control to use.
    * @throws UsbException if the device command message fails to set
    */
-  public static void setFlowControl(IUsbDevice usbDevice, FlowControlType flowcontrol) throws UsbException {
+  public static void setFlowControl(IUsbDevice usbDevice, FlowControl flowcontrol) throws UsbException {
     usbDevice.syncSubmit(usbDevice.createUsbControlIrp(FTDI_USB_CONFIGURATION_WRITE,
                                                        SIO_SET_FLOW_CTRL_REQUEST,
                                                        flowcontrol.getBytecode(),
@@ -287,8 +287,8 @@ public class FTDIUtility {
    * @param parity    LineParity mode
    * @throws UsbException if the device command message fails to set
    */
-  public static void setLineProperty(IUsbDevice usbDevice, LineDatabitType bits, LineStopbitType stopbits, LineParityType parity) throws UsbException {
-    setLineProperty(usbDevice, bits, stopbits, parity, LineBreakType.BREAK_OFF);
+  public static void setLineProperty(IUsbDevice usbDevice, LineDatabit bits, LineStopbit stopbits, LineParity parity) throws UsbException {
+    setLineProperty(usbDevice, bits, stopbits, parity, LineBreak.BREAK_OFF);
   }
 
   /**
@@ -303,7 +303,7 @@ public class FTDIUtility {
    * @param breaktype Break type (default is BREAK_OFF)
    * @throws UsbException if the device command message fails to set
    */
-  public static void setLineProperty(IUsbDevice usbDevice, LineDatabitType bits, LineStopbitType stopbits, LineParityType parity, LineBreakType breaktype) throws UsbException {
+  public static void setLineProperty(IUsbDevice usbDevice, LineDatabit bits, LineStopbit stopbits, LineParity parity, LineBreak breaktype) throws UsbException {
     short value = (short) bits.getBits();
     switch (parity) {
       case NONE:

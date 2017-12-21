@@ -15,10 +15,10 @@
  */
 package com.ftdichip.usb;
 
-import com.ftdichip.usb.enumerated.FlowControlType;
-import com.ftdichip.usb.enumerated.LineDatabitType;
-import com.ftdichip.usb.enumerated.LineParityType;
-import com.ftdichip.usb.enumerated.LineStopbitType;
+import com.ftdichip.usb.enumerated.FlowControl;
+import com.ftdichip.usb.enumerated.LineDatabit;
+import com.ftdichip.usb.enumerated.LineParity;
+import com.ftdichip.usb.enumerated.LineStopbit;
 import java.util.Arrays;
 import javax.usb3.*;
 import javax.usb3.enumerated.EEndpointDirection;
@@ -95,10 +95,10 @@ public final class FTDI {
      * Set the serial line configuration: 115200 bps, 8, N, 1, no flow control.
      */
     ftdi.configureSerialPort(FTDIUtility.DEFAULT_BAUD_RATE,
-                             LineDatabitType.BITS_8,
-                             LineStopbitType.STOP_BIT_1,
-                             LineParityType.NONE,
-                             FlowControlType.DISABLE_FLOW_CTRL);
+                             LineDatabit.BITS_8,
+                             LineStopbit.STOP_BIT_1,
+                             LineParity.NONE,
+                             FlowControl.DISABLE_FLOW_CTRL);
     /**
      * Set the DTR and RTS lines.
      */
@@ -214,10 +214,10 @@ public final class FTDI {
    *                      permissions)
    */
   public void configureSerialPort(int requestedBaudRate,
-                                  LineDatabitType bits,
-                                  LineStopbitType stopbits,
-                                  LineParityType parity,
-                                  FlowControlType flowControl) throws UsbException {
+                                  LineDatabit bits,
+                                  LineStopbit stopbits,
+                                  LineParity parity,
+                                  FlowControl flowControl) throws UsbException {
     FTDIUtility.setBaudRate(usbDevice, requestedBaudRate);
     FTDIUtility.setLineProperty(usbDevice, bits, stopbits, parity);
     FTDIUtility.setFlowControl(usbDevice, flowControl);

@@ -22,7 +22,6 @@ import java.util.Collection;
 import javax.usb3.IUsbDevice;
 import javax.usb3.exception.UsbException;
 import javax.usb3.utility.ByteUtility;
-import org.junit.Test;
 
 /**
  *
@@ -30,7 +29,7 @@ import org.junit.Test;
  */
 public class Test_FTDIUtil {
 
-  @Test
+//  @Test
   public void testFTDI() throws UsbException {
     Collection<IUsbDevice> devices = FTDIUtility.findFTDIDevices();
     for (IUsbDevice iUsbDevice : devices) {
