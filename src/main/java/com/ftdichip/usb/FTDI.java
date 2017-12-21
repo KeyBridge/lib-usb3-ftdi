@@ -15,17 +15,18 @@
  */
 package com.ftdichip.usb;
 
-import static com.ftdichip.usb.FTDIUtility.MODEM_STATUS_HEADER_LENGTH;
-import com.ftdichip.usb.enumerated.EFlowControl;
-import com.ftdichip.usb.enumerated.ELineDatabits;
-import com.ftdichip.usb.enumerated.ELineParity;
-import com.ftdichip.usb.enumerated.ELineStopbits;
+import com.ftdichip.usb.enumerated.FlowControlType;
+import com.ftdichip.usb.enumerated.LineDatabitType;
+import com.ftdichip.usb.enumerated.LineParityType;
+import com.ftdichip.usb.enumerated.LineStopbitType;
 import java.util.Arrays;
 import javax.usb3.*;
 import javax.usb3.enumerated.EEndpointDirection;
 import javax.usb3.exception.UsbDisconnectedException;
 import javax.usb3.exception.UsbException;
 import javax.usb3.exception.UsbNotActiveException;
+
+import static com.ftdichip.usb.FTDIUtility.MODEM_STATUS_HEADER_LENGTH;
 
 /**
  * FTDI UART read/write utility.
@@ -81,6 +82,7 @@ public final class FTDI {
    * using one or more instances of this FTDI class.
    *
    * @param usbDevice the specific UsbDevice instance to communicate with
+   * @return a new instance
    * @throws UsbException if the USB device is not readable/writable by the
    *                      current user (permission error)
    */
@@ -93,10 +95,10 @@ public final class FTDI {
      * Set the serial line configuration: 115200 bps, 8, N, 1, no flow control.
      */
     ftdi.configureSerialPort(FTDIUtility.DEFAULT_BAUD_RATE,
-                             ELineDatabits.BITS_8,
-                             ELineStopbits.STOP_BIT_1,
-                             ELineParity.NONE,
-                             EFlowControl.DISABLE_FLOW_CTRL);
+                             LineDatabitType.BITS_8,
+                             LineStopbitType.STOP_BIT_1,
+                             LineParityType.NONE,
+                             FlowControlType.DISABLE_FLOW_CTRL);
     /**
      * Set the DTR and RTS lines.
      */
@@ -151,23 +153,17 @@ public final class FTDI {
      * Always force the claim by passing an interface policy to the claim
      * method:
      */
-    usbInterface.claim(new IUsbInterfacePolicy() {
-
-      @Override
-      public boolean forceClaim(IUsbInterface usbInterface) {
-        return true;
-      }
-    });
+    usbInterface.claim((IUsbInterface usbInterface1) -> true);
     /**
      * Scan the interface UsbEndPoint list to set the READ and WRITE USB pipes.
      */
-    for (IUsbEndpoint usbEndpoint : usbInterface.getUsbEndpoints()) {
+    usbInterface.getUsbEndpoints().forEach((usbEndpoint) -> {
       if (EEndpointDirection.HOST_TO_DEVICE.equals(usbEndpoint.getDirection())) {
         usbPipeWrite = usbEndpoint.getUsbPipe();
       } else {
         usbPipeRead = usbEndpoint.getUsbPipe();
       }
-    }
+    });
     /**
      * Add a shutdown hook to disconnect the USB interface and close the USB
      * port when shutting down. This will un-claim the device.
@@ -218,10 +214,10 @@ public final class FTDI {
    *                      permissions)
    */
   public void configureSerialPort(int requestedBaudRate,
-                                  ELineDatabits bits,
-                                  ELineStopbits stopbits,
-                                  ELineParity parity,
-                                  EFlowControl flowControl) throws UsbException {
+                                  LineDatabitType bits,
+                                  LineStopbitType stopbits,
+                                  LineParityType parity,
+                                  FlowControlType flowControl) throws UsbException {
     FTDIUtility.setBaudRate(usbDevice, requestedBaudRate);
     FTDIUtility.setLineProperty(usbDevice, bits, stopbits, parity);
     FTDIUtility.setFlowControl(usbDevice, flowControl);

@@ -270,7 +270,7 @@ public class FTDIUtility {
    * @param flowcontrol flow control to use.
    * @throws UsbException if the device command message fails to set
    */
-  public static void setFlowControl(IUsbDevice usbDevice, EFlowControl flowcontrol) throws UsbException {
+  public static void setFlowControl(IUsbDevice usbDevice, FlowControlType flowcontrol) throws UsbException {
     usbDevice.syncSubmit(usbDevice.createUsbControlIrp(FTDI_USB_CONFIGURATION_WRITE,
                                                        SIO_SET_FLOW_CTRL_REQUEST,
                                                        flowcontrol.getBytecode(),
@@ -287,8 +287,8 @@ public class FTDIUtility {
    * @param parity    LineParity mode
    * @throws UsbException if the device command message fails to set
    */
-  public static void setLineProperty(IUsbDevice usbDevice, ELineDatabits bits, ELineStopbits stopbits, ELineParity parity) throws UsbException {
-    setLineProperty(usbDevice, bits, stopbits, parity, ELineBreak.BREAK_OFF);
+  public static void setLineProperty(IUsbDevice usbDevice, LineDatabitType bits, LineStopbitType stopbits, LineParityType parity) throws UsbException {
+    setLineProperty(usbDevice, bits, stopbits, parity, LineBreakType.BREAK_OFF);
   }
 
   /**
@@ -303,7 +303,7 @@ public class FTDIUtility {
    * @param breaktype Break type (default is BREAK_OFF)
    * @throws UsbException if the device command message fails to set
    */
-  public static void setLineProperty(IUsbDevice usbDevice, ELineDatabits bits, ELineStopbits stopbits, ELineParity parity, ELineBreak breaktype) throws UsbException {
+  public static void setLineProperty(IUsbDevice usbDevice, LineDatabitType bits, LineStopbitType stopbits, LineParityType parity, LineBreakType breaktype) throws UsbException {
     short value = (short) bits.getBits();
     switch (parity) {
       case NONE:
@@ -449,9 +449,7 @@ public class FTDIUtility {
     int bestDivisor = 0;
     Integer bestBaud = 0;
     int bestBaudDiff = 0;
-    int fracCode[] = {
-      0, 3, 2, 4, 1, 5, 6, 7
-    };
+    int fracCode[] = {0, 3, 2, 4, 1, 5, 6, 7};
 
     for (int i = 0; i < 2; i++) {
       int tryDivisor = divisor + i;
@@ -593,34 +591,42 @@ public class FTDIUtility {
     int H_CLK = 120000000; // 120 MHz clock
     int C_CLK = 48000000; // 48 MHz clock
 
-    EChipType type = EChipType.TYPE_2232H;
+    ChipType type = ChipType.TYPE_2232H;
 
-    if (type.equals(EChipType.TYPE_2232H) || type.equals(EChipType.TYPE_4232H) || type.equals(EChipType.TYPE_232H)) {
-      if (baudrate * 10 > H_CLK / 0x3fff) {
-        /*
-         * On H Devices, use 12 000 000 Baudrate when possible. We have a 14 bit
-         * divisor, a 1 bit divisor switch (10 or 16) three fractional bits and
-         * a 120 MHz clock Assume AN_120 "Sub-integer divisors between 0 and 2
-         * are not allowed" holds for DIV/10 CLK too, so /1, /1.5 and /2 can be
-         * handled the same
-         */
-        best_baud = ftdi_to_clkbits(baudrate, H_CLK, 10, encoded_divisor);
-        encoded_divisor |= 0x20000;
-        /**
-         * switch on CLK/10
-         */
-      } else {
+    switch (type) {
+      case TYPE_2232H:
+      case TYPE_4232H:
+      case TYPE_232H:
+        if (baudrate * 10 > H_CLK / 0x3fff) {
+          /*
+           * On H Devices, use 12 000 000 Baudrate when possible. We have a 14
+           * bit divisor, a 1 bit divisor switch (10 or 16) three fractional
+           * bits and a 120 MHz clock Assume AN_120 "Sub-integer divisors
+           * between 0 and 2 are not allowed" holds for DIV/10 CLK too, so /1,
+           * /1.5 and /2 can be handled the same
+           */
+          best_baud = ftdi_to_clkbits(baudrate, H_CLK, 10, encoded_divisor);
+          encoded_divisor |= 0x20000;
+          /**
+           * switch on CLK/10
+           */
+        } else {
+          best_baud = ftdi_to_clkbits(baudrate, C_CLK, 16, encoded_divisor);
+        }
+        break;
+      case TYPE_BM:
+      case TYPE_2232C:
+      case TYPE_R:
         best_baud = ftdi_to_clkbits(baudrate, C_CLK, 16, encoded_divisor);
-      }
-    } else if (type.equals(EChipType.TYPE_BM) || type.equals(EChipType.TYPE_2232C) || type.equals(EChipType.TYPE_R)) {
-      best_baud = ftdi_to_clkbits(baudrate, C_CLK, 16, encoded_divisor);
-    } else {
-      best_baud = ftdi_to_clkbits_AM(baudrate, encoded_divisor);
+        break;
+      default:
+        best_baud = ftdi_to_clkbits_AM(baudrate, encoded_divisor);
+        break;
     }
     // Split into "value" and "index" values
     value = (short) (encoded_divisor & 0xFFFF);
     System.out.println("debug ftdi_convert_baudrate encoded_divisor " + encoded_divisor + " value " + value);
-    if (type.equals(EChipType.TYPE_2232H) || type.equals(EChipType.TYPE_4232H) || type.equals(EChipType.TYPE_232H)) {
+    if (type.equals(ChipType.TYPE_2232H) || type.equals(ChipType.TYPE_4232H) || type.equals(ChipType.TYPE_232H)) {
       index = (short) (encoded_divisor >> 8);
       index &= 0xFF00;
 //      index |= ftdi -> index;
